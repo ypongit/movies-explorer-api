@@ -1,0 +1,21 @@
+{
+  "name": "movies-explorer-api",
+  "version": "1.0.0",
+  "description": "Backend for movies explorer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ypongit/movies-explorer-api.git"
+  },
+  "author": "Yuri Ponomarev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ypongit/movies-explorer-api/issues"
+  },
+  "homepage": "https://github.com/ypongit/movies-explorer-api#readme"
+}
