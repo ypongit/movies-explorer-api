@@ -45,20 +45,20 @@ const getProfile = (req, res) => {
 // Создание пользователя
 const createUser = (req, res) => {
   const { email,
-          password,
-          name } = req.body;
-    bcrypt.hash(password, saltRound)
+    password,
+    name } = req.body;
+  bcrypt.hash(password, saltRound)
     // записываем данные в базу
     .then((hash) =>
-    User.create({
-      email,
-      password: hash,
-      name })
-      .then((user) =>{
-      res.status(201).send({ "_id": user._id, "email": user.email, "name": user.name })})
+      User.create({
+        email,
+        password: hash,
+        name })
+        .then((user) =>{
+          res.status(201).send({ "_id": user._id, "email": user.email, "name": user.name })})
       // если данные не записались, вернём ошибку
-  )
-  .catch((err) => res.status(400).send({ message: err.message }))
+    )
+    .catch((err) => res.status(400).send({ message: err.message }))
 };
 
 // контроллер аутентификации
@@ -70,19 +70,16 @@ const login = (req, res) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log('login user', user);
       // аутентификация успешна! пользователь в переменной user
       const token = jwt.sign({ _id: user._id},
         JWT_SECRET_KEY,
         { expiresIn: '7d' },
-        );
-        console.log({token});
-        res.status(200).send({ token });
+      );
+      res.status(200).send({ token });
     })
     .catch((err) => {
       // ошибка аутентификации
-      res
-        .status(401)
+      res.status(401)
         .send({ message: err.message });
     })
 }

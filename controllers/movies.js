@@ -1,32 +1,30 @@
-// это файл контроллеров кино
+// файл контроллеров кино
 const Movie = require('../models/movie');
-
 // удаляет сохранённый фильм по id
 const removeMovie = (req, res) => {
   Movie.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) {
         return res.status(404)
-          .send({ message: 'Картина не найдена' })
+          .send({ message: 'Картина не найдена' });
       }
       if (String(owner) !== req.user._id) {
         return res.status(403)
-          .send({ message: 'Картина может быть удалена только создателем!'} )
+          .send({ message: 'Картина может быть удалена только создателем!' });
       }
       return Movie.deleteOne({ _id: movie._id })
-        .then(() => res.status(200).send({ message: 'Фильм удален' }))
+        .then(() => res.status(200).send({ message: 'Фильм удален' }));
     })
-    .catch(err => console.log(err));
-}
+    .catch((err) => console.log(err));
+};
 
 // возвращает все сохранённые текущим  пользователем фильмы
 const getMovies = (req, res) => {
-
-    Movie.find({ owner: req.user._id })
-      // .populate('owner')
-      .then(movies => res.status(200).send({ movies }))
-      .catch((err) => res.status(500).send({ message: 'Произошла ошибка' }));
-}
+  Movie.find({ owner: req.user._id })
+    // .populate('owner')
+    .then((movies) => res.status(200).send({ movies }))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+};
 
 // создаёт фильм с переданными в теле данными
 const createMovie = (req, res) => {
@@ -42,7 +40,7 @@ const createMovie = (req, res) => {
     thumbnail,
     movieId,
     nameRU,
-    nameEN
+    nameEN,
   } = req.body;
 
   Movie.create({
@@ -57,12 +55,10 @@ const createMovie = (req, res) => {
     owner,
     movieId,
     nameRU,
-    nameEN
+    nameEN,
   })
-    .then(movie => res.status(201).send({ movie }))
-    .catch((err) => res.status(500).send({ message: err.message }))
+    .then((movie) => res.status(201).send({ movie }))
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
-
-
 
 module.exports = { createMovie, getMovies, removeMovie };
