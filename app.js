@@ -1,16 +1,21 @@
 require('dotenv').config();
-const path = require('path');
 const express = require('express');
+const ratelimit = require('express-rate-limit');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
+
 const bodyParser = require('body-parser');
+
 const { PORT = 3000, BASE_PATH } = process.env;
+const router = require('./routes/index');
+
 const app = express();
-const movie = require('./models/movie');
-const user = require('./models/user');
-const { userRouter } = require('./routes/users');
-const { movieRouter } = require('./routes/movies');
-const { login, createUser } = require('./controllers/users');
-const { isAuthorized } = require('./middlewares/auth');
+
+const limiter = ratelimit({
+  windowMs: 15 * 60 * 1000, // за 15 минут
+  max: 100, // можно совершить максимум 100 запросов с одного IP
+});
+
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 console.log(process.env.NODE_ENV);
@@ -18,32 +23,35 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/movies'/*,  {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false
-} */);
+mongoose.connect('mongodb://localhost:27017/moviesdb');
+
+app.use(helmet());
 
 // подключаем логгер запросов
 app.use(requestLogger);
-// проверяет переданные в теле почту и пароль  и возвращает JWT
-app.post('/signin', login);
-// создаёт пользователя с переданными в теле email, password и name
-app.post('/signup', createUser);
+// ограничивает количество запросов с одного IP-адреса в единицу времени
+app.use(limiter);
 
-// роуты защищенные авторизацией
-app.use('/users', isAuthorized, userRouter);
-
-app.use('/movies', isAuthorized, movieRouter);
+app.use('/', router);
 // подключаем логгер ошибок
 app.use(errorLogger);
 
-app.use('/', (_, res) =>
-res.status(200).send({ message: 'OK! All right!' })
-)
+// централизованная обработка ошибок
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
 
-app.use(express.static(path.join(__dirname, 'public')));
+  res
+    .status(statusCode)
+    .send({
+      // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  next();
+});
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
-  console.log(BASE_PATH); //BASE_PATH — это URL сервера. Он хранится в переменных окружения.
-})
+  console.log(BASE_PATH); // BASE_PATH — это URL сервера. Он хранится в переменных окружения.
+});

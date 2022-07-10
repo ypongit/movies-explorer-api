@@ -1,36 +1,23 @@
-/*
-# возвращает информацию о пользователе (email и имя)
-GET /users/me
-
-# обновляет информацию о пользователе (email и имя)
-PATCH /users/me
-
-# возвращает все сохранённые текущим  пользователем фильмы
-GET /movies
-
-# создаёт фильм с переданными в теле
-# country, director, duration, year, description, image, trailer, nameRU, nameEN и thumbnail, movieId
-POST /movies
-
-# удаляет сохранённый фильм по id
-DELETE /movies/_id
-    всякий код для создания роутеров и т.п.
-*/
 const router = require('express').Router();
-const User = require('../models/user');
-const { createUser, getUsers, getProfile, updateProfile, login } = require('../controllers/users');
+const { celebrate, Joi } = require('celebrate');
+
+const {
+  getUsers,
+  getProfile,
+  updateProfile,
+} = require('../controllers/users');
 
 // возвращает информацию о пользователе (email и имя)
-router.get('/me', getProfile);
+router.get('/users/me', getProfile);
 
 // обновляет информацию о пользователе (email и имя)
-router.patch('/me', updateProfile)
+router.patch('/users/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    email: Joi.string().required().email(),
+  }),
+}), updateProfile);
 
-router.get('/', getUsers);
-
-// Создание пользователя
-router.post('/', createUser);
-
-
+router.get('/users', getUsers);
 
 module.exports.userRouter = router;

@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const isUrl = require('validator/lib/isURL');
+
 const movieSchema = new mongoose.Schema({
   // country — страна создания фильма. Обязательное поле-строка.
   country: {
@@ -44,19 +45,19 @@ const movieSchema = new mongoose.Schema({
     validate: {
       validator: (v) => isUrl(v),
       message: 'Здесь должна быть ссылка',
+    },
   },
-},
-// thumbnail — миниатюрное изображение постера к фильму.
-// Обязательное поле-строка. Запишите её URL-адресом.
+  // thumbnail — миниатюрное изображение постера к фильму.
+  // Обязательное поле-строка. Запишите её URL-адресом.
   thumbnail: {
     type: String,
     required: true,
     validate: {
       validator: (v) => isUrl(v),
       message: 'Здесь должна быть ссылка',
+    },
   },
-},
-// owner — _id пользователя, который сохранил фильм. Обязательное поле.
+  // owner — _id пользователя, который сохранил фильм. Обязательное поле.
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
@@ -73,8 +74,8 @@ const movieSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
- //  nameEN — название фильма на английском языке. Обязательное поле-строка.
- nameEN: {
+  //  nameEN — название фильма на английском языке. Обязательное поле-строка.
+  nameEN: {
     type: String,
     required: true,
   },
