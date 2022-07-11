@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const bodyParser = require('body-parser');
 
 const { PORT = 3000, BASE_PATH } = process.env;
+const { MONGO_URL } = require('./utils/constants');
 const router = require('./routes/index');
 
 const app = express();
@@ -23,7 +24,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/moviesdb');
+mongoose.connect(MONGO_URL);
 
 app.use(helmet());
 
