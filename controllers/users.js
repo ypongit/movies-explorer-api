@@ -5,11 +5,17 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 // const saltRound = 10;
-const { NODE_ENV, JWT_SECRET_KEY } = process.env;
+const { JWT_SECRET_KEY } = require('../utils/config');
 const NotFoundError = require('../errors/not-found-err');
 const ValidationError = require('../errors/validation-err');
 const AuthError = require('../errors/authentification-err');
 const DuplicateError = require('../errors/duplicate-err');
+const {
+  NOT_FOUND_DATA_USER_ERR_MSG,
+  VALIDATION_DATA_ERR_MSG,
+  DUPLICATE_ERR_MSG,
+  AUTH_ERR_MSG,
+} = require('../utils/constants');
 
 const { saltRound, MONGO_DUPLICATE_KEY_CODE } = require('../utils/constants');
 
@@ -31,7 +37,7 @@ const updateProfile = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь не найден');
+        throw new NotFoundError(NOT_FOUND_DATA_USER_ERR_MSG);
         // return res.status(404).send({ message: 'Пользователь не найден' });
       }
       return res.status(200).send({
@@ -42,10 +48,10 @@ const updateProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ValidationError('переданы некорректные данные в методы обновления пользователя'));
+        next(new ValidationError(VALIDATION_DATA_ERR_MSG));
       }
       if (err.name === 'MongoServerError' && err.code === MONGO_DUPLICATE_KEY_CODE) {
-        next(new DuplicateError('Пользователь с таким email уже существует'));
+        next(new DuplicateError(DUPLICATE_ERR_MSG));
       } else {
         next(err);
       }
@@ -57,7 +63,7 @@ const getProfile = (req, res, next) => {
   User.findOne({ _id: req.user._id })
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь c таким id не найден');
+        throw new NotFoundError(NOT_FOUND_DATA_USER_ERR_MSG);
         // return res.status(404).send({ message: 'Пользователь не найден' });
       }
       return res.status(200).send({
@@ -92,10 +98,12 @@ const createUser = (req, res, next) => {
     // если данные не записались, вернём ошибку
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new ValidationError(err.message);
+        next(new ValidationError(VALIDATION_DATA_ERR_MSG));
+        // throw new ValidationError(err.message);
       }
       if (err.name === 'MongoServerError' && err.code === MONGO_DUPLICATE_KEY_CODE) {
-        throw new DuplicateError('Пользователь с таким email уже существует');
+        next(new DuplicateError(DUPLICATE_ERR_MSG));
+        // throw new DuplicateError('Пользователь с таким email уже существует');
       } else {
         next(err);
       }
@@ -111,14 +119,15 @@ const login = (req, res, next) => {
       // аутентификация успешна! пользователь в переменной user
       const token = jwt.sign(
         { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET_KEY : 'dev-secret',
+        JWT_SECRET_KEY,
+        //  NODE_ENV === 'production' ? JWT_SECRET_KEY : 'dev-secret',
         { expiresIn: '7d' },
       );
       res.status(200).send({ token });
     })
     .catch(() => {
       // ошибка аутентификации
-      next(new AuthError('Неправильные почта или пароль'));
+      next(new AuthError(AUTH_ERR_MSG));
     });
 };
 

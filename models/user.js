@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const isEmail = require('validator/lib/isEmail');
+const {
+  VALIDATION_EMAIL_ERR_MSG,
+  AUTH_ERR_MSG,
+} = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   // email — почта пользователя, по которой он регистрируется.
@@ -12,7 +16,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: (v) => isEmail(v),
-      message: 'Неправильный формат почты',
+      message: VALIDATION_EMAIL_ERR_MSG,
     },
   },
   // password — хеш пароля. Обязательное поле-строка.
@@ -27,9 +31,10 @@ const userSchema = new mongoose.Schema({
   // Это обязательное поле-строка от 2 до 30 символов.
   name: {
     type: String,
-    required: true,
+    // required: true,
     minlength: 2,
     maxlength: 30,
+    default: 'Клинт Иствуд',
   },
 });
 
@@ -38,7 +43,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email })
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new Error(AUTH_ERR_MSG));
       }
 
       // нашёлся — сравниваем хеши
@@ -46,7 +51,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
         .then((matched) => {
           console.log(matched);
           if (!matched) {
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(new Error(AUTH_ERR_MSG));
           }
           return user;
         });

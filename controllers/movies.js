@@ -3,19 +3,24 @@ const Movie = require('../models/movie');
 const NotFoundError = require('../errors/not-found-err');
 const ForbiddenError = require('../errors/forbidden-err');
 const ValidationError = require('../errors/validation-err');
+const {
+  NOT_FOUND_MOVIE_ERR,
+  FORBIDDEN_MOVIE_ERR,
+  VALIDATION_DATA_ERR_MSG,
+} = require('../utils/constants');
 
 // удаляет сохранённый фильм по id
 const removeMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) {
-        throw new NotFoundError('Картина не найдена');
+        throw new NotFoundError(NOT_FOUND_MOVIE_ERR);
         /* return res.status(404)
           .send({ message: 'Картина не найдена' }); */
       }
 
       if (String(movie.owner) !== req.user._id) {
-        throw new ForbiddenError('Картина может быть удалена только создателем!');
+        throw new ForbiddenError(FORBIDDEN_MOVIE_ERR);
         /* return res.status(403)
           .send({ message: 'Картина может быть удалена только создателем!' }); */
       }
@@ -67,7 +72,7 @@ const createMovie = (req, res, next) => {
     .then((movie) => res.status(201).send({ movie }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new ValidationError('Переданы некорректные данные в методы создания фильма');
+        throw new ValidationError(VALIDATION_DATA_ERR_MSG);
       }
     })
     .catch(next);
