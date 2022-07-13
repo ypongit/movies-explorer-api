@@ -8,7 +8,7 @@ const {
 } = require('../middlewares/reqValid');
 
 const {
-  getUsers,
+  // getUsers,
   getProfile,
   updateProfile,
   createUser,
@@ -30,6 +30,6 @@ router.get('/users/me', isAuthorized, validateId, getProfile);
 // обновляет информацию о пользователе (email и имя)
 router.patch('/users/me', isAuthorized, validateUpdateUser, updateProfile);
 
-router.get('/users', getUsers);
+// router.get('/users', getUsers);
 
 module.exports.userRouter = router;
