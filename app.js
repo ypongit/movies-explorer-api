@@ -1,49 +1,52 @@
 require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const { PORT = 3000, BASE_PATH } = process.env;
-const app = express();
-const movie = require('./models/movie');
-const user = require('./models/user');
-const { userRouter } = require('./routes/users');
-const { movieRouter } = require('./routes/movies');
-const { login, createUser } = require('./controllers/users');
-const { isAuthorized } = require('./middlewares/auth');
-const { requestLogger, errorLogger } = require('./middlewares/logger');
 
-console.log(process.env.NODE_ENV);
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+const { errors } = require('celebrate');
+
+const bodyParser = require('body-parser');
+const limiter = require('./middlewares/rateLimit');
+
+// const { PORT = 3000, NODE_ENV, MONGOOSE_DB_URL } = process.env;
+const { MONGO_URL, PORT, NODE_ENV } = require('./utils/config');
+const router = require('./routes/index');
+
+const app = express();
+
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { errorHandler } = require('./middlewares/errorHandler');
+
+// console.log('process.env => ', process.env);
+console.log('NODE_ENV => ', NODE_ENV);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/movies'/*,  {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false
-} */);
+mongoose.connect(MONGO_URL, () => {
+  console.log('Connection succesfull');
+});
+
+app.use(helmet());
 
 // подключаем логгер запросов
 app.use(requestLogger);
-// проверяет переданные в теле почту и пароль  и возвращает JWT
-app.post('/signin', login);
-// создаёт пользователя с переданными в теле email, password и name
-app.post('/signup', createUser);
 
-// роуты защищенные авторизацией
-app.use('/users', isAuthorized, userRouter);
+app.use(cors());
+// ограничивает количество запросов с одного IP-адреса в единицу времени
+app.use(limiter);
 
-app.use('/movies', isAuthorized, movieRouter);
+app.use('/', router);
+// обработчики ошибок
 // подключаем логгер ошибок
 app.use(errorLogger);
+// обработчик ошибок celebrate
+app.use(errors());
+// централизованная обработка ошибок
+app.use(errorHandler);
 
-app.use('/', (_, res) =>
-res.status(200).send({ message: 'OK! All right!' })
-)
-
-app.use(express.static(path.join(__dirname, 'public')));
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
-  console.log(BASE_PATH); //BASE_PATH — это URL сервера. Он хранится в переменных окружения.
-})
+  // console.log(BASE_PATH); // BASE_PATH — это URL сервера. Он хранится в переменных окружения.
+});

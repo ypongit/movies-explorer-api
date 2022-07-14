@@ -1,12 +1,14 @@
+// const { celebrate, Joi } = require('celebrate');
 const router = require('express').Router();
-const Movie = require('../models/movie');
+const { isAuthorized } = require('../middlewares/auth');
+const { validateCreateMovie, validateDeleteMovie } = require('../middlewares/reqValid');
 const { createMovie, getMovies, removeMovie } = require('../controllers/movies');
 
 // возвращает все сохранённые текущим  пользователем фильмы.
-router.get('/', getMovies);
+router.get('/movies', isAuthorized, getMovies);
 // создаёт фильм
-router.post('/', createMovie);
+router.post('/movies', isAuthorized, validateCreateMovie, createMovie);
 // удаляет сохранённый фильм по id
-router.delete('/:movieId', removeMovie)
+router.delete('/movies/:movieId', isAuthorized, validateDeleteMovie, removeMovie);
 
 module.exports.movieRouter = router;

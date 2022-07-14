@@ -1,35 +1,45 @@
-// это файл контроллеров кино
+// файл контроллеров кино
 const Movie = require('../models/movie');
+const NotFoundError = require('../errors/not-found-err');
+const ForbiddenError = require('../errors/forbidden-err');
+const ValidationError = require('../errors/validation-err');
+const {
+  NOT_FOUND_MOVIE_ERR,
+  FORBIDDEN_MOVIE_ERR,
+  VALIDATION_DATA_ERR_MSG,
+} = require('../utils/constants');
 
 // удаляет сохранённый фильм по id
-const removeMovie = (req, res) => {
+const removeMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .then((movie) => {
       if (!movie) {
-        return res.status(404)
-          .send({ message: 'Картина не найдена' })
+        throw new NotFoundError(NOT_FOUND_MOVIE_ERR);
+        /* return res.status(404)
+          .send({ message: 'Картина не найдена' }); */
       }
-      if (String(owner) !== req.user._id) {
-        return res.status(403)
-          .send({ message: 'Картина может быть удалена только создателем!'} )
+
+      if (String(movie.owner) !== req.user._id) {
+        throw new ForbiddenError(FORBIDDEN_MOVIE_ERR);
+        /* return res.status(403)
+          .send({ message: 'Картина может быть удалена только создателем!' }); */
       }
       return Movie.deleteOne({ _id: movie._id })
-        .then(() => res.status(200).send({ message: 'Фильм удален' }))
+        .then(() => res.status(200).send({ message: 'Фильм удален' }));
     })
-    .catch(err => console.log(err));
-}
+    .catch(next);
+};
 
 // возвращает все сохранённые текущим  пользователем фильмы
-const getMovies = (req, res) => {
-
-    Movie.find({ owner: req.user._id })
-      // .populate('owner')
-      .then(movies => res.status(200).send({ movies }))
-      .catch((err) => res.status(500).send({ message: 'Произошла ошибка' }));
-}
+const getMovies = (req, res, next) => {
+  Movie.find({ owner: req.user._id })
+    // .populate('owner')
+    .then((movies) => res.status(200).send({ movies }))
+    .catch(next);
+};
 
 // создаёт фильм с переданными в теле данными
-const createMovie = (req, res) => {
+const createMovie = (req, res, next) => {
   const owner = req.user._id;
   const {
     country,
@@ -42,7 +52,7 @@ const createMovie = (req, res) => {
     thumbnail,
     movieId,
     nameRU,
-    nameEN
+    nameEN,
   } = req.body;
 
   Movie.create({
@@ -57,12 +67,15 @@ const createMovie = (req, res) => {
     owner,
     movieId,
     nameRU,
-    nameEN
+    nameEN,
   })
-    .then(movie => res.status(201).send({ movie }))
-    .catch((err) => res.status(500).send({ message: err.message }))
+    .then((movie) => res.status(201).send({ movie }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        throw new ValidationError(VALIDATION_DATA_ERR_MSG);
+      }
+    })
+    .catch(next);
 };
-
-
 
 module.exports = { createMovie, getMovies, removeMovie };

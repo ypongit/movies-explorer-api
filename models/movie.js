@@ -2,6 +2,8 @@
 
 const mongoose = require('mongoose');
 const isUrl = require('validator/lib/isURL');
+const { VALIDATION_URL_ERR_MSG } = require('../utils/constants');
+
 const movieSchema = new mongoose.Schema({
   // country — страна создания фильма. Обязательное поле-строка.
   country: {
@@ -34,7 +36,7 @@ const movieSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (v) => isUrl(v),
-      message: 'Здесь должна быть ссылка',
+      message: VALIDATION_URL_ERR_MSG,
     },
   },
   // trailerLink — ссылка на трейлер фильма. Обязательное поле-строка. Запишите её URL-адресом.
@@ -43,20 +45,20 @@ const movieSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (v) => isUrl(v),
-      message: 'Здесь должна быть ссылка',
+      message: VALIDATION_URL_ERR_MSG,
+    },
   },
-},
-// thumbnail — миниатюрное изображение постера к фильму.
-// Обязательное поле-строка. Запишите её URL-адресом.
+  // thumbnail — миниатюрное изображение постера к фильму.
+  // Обязательное поле-строка. Запишите её URL-адресом.
   thumbnail: {
     type: String,
     required: true,
     validate: {
       validator: (v) => isUrl(v),
-      message: 'Здесь должна быть ссылка',
+      message: VALIDATION_URL_ERR_MSG,
+    },
   },
-},
-// owner — _id пользователя, который сохранил фильм. Обязательное поле.
+  // owner — _id пользователя, который сохранил фильм. Обязательное поле.
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
@@ -66,15 +68,15 @@ const movieSchema = new mongoose.Schema({
   // Обязательное поле.
   movieId: {
     type: Number,
-    // required: true,
+    required: true,
   },
   // nameRU — название фильма на русском языке. Обязательное поле-строка.
   nameRU: {
     type: String,
     required: true,
   },
- //  nameEN — название фильма на английском языке. Обязательное поле-строка.
- nameEN: {
+  //  nameEN — название фильма на английском языке. Обязательное поле-строка.
+  nameEN: {
     type: String,
     required: true,
   },
